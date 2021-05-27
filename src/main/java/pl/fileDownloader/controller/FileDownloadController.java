@@ -8,10 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,7 +25,7 @@ public class FileDownloadController {
     }
 
     @GetMapping("/download1")
-    public ResponseEntity<InputStreamResource> downloadFiles1() throws FileNotFoundException {
+    public ResponseEntity<InputStreamResource> downloadFile1() throws FileNotFoundException {
 
         File file = new File(FILE_PATH);
         InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
@@ -40,8 +38,8 @@ public class FileDownloadController {
 
     }
 
-    @GetMapping("download2")
-    public ResponseEntity<ByteArrayResource> donwloadFiles2() throws IOException {
+    @GetMapping("/download2")
+    public ResponseEntity<ByteArrayResource> donwloadFile2() throws IOException {
 
         Path path = Paths.get(FILE_PATH);
         byte[] data = Files.readAllBytes(path);
@@ -52,6 +50,27 @@ public class FileDownloadController {
                         "attachment;filename=" + path.getFileName().toFile())
                 .contentType(MediaType.APPLICATION_PDF).contentLength(data.length)
                 .body(resource);
+
+    }
+
+    @GetMapping("/download3")
+    public void downloadFile3(HttpServletResponse response) throws IOException {
+
+        File file = new File(FILE_PATH);
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment;filename=" + file.getName());
+        BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+        BufferedOutputStream outputStream = new BufferedOutputStream(response.getOutputStream());
+
+        byte[] buffer = new byte[1024];
+        int bytesRead = 0;
+        while ((bytesRead = inputStream.read(buffer)) != -1){
+            outputStream.write(buffer, 0, bytesRead);
+        }
+
+        outputStream.flush();
+        inputStream.close();
 
     }
 
